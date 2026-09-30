@@ -1,6 +1,7 @@
 package com.green.spring_board;
 
 
+import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
@@ -9,13 +10,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/board")
-
+@AllArgsConstructor
 public class BoardController {
-    private BoardRepository boardRepository;
+      private BoardRepository boardRepository;
 
-    public BoardController(BoardRepository boardRepository) {
-        this.boardRepository = boardRepository;
-    }
     //조회
     @GetMapping
     public List<Boards> getBoards(){
@@ -23,7 +21,11 @@ public class BoardController {
     }
     @GetMapping("/{id}")
     public Boards getBoardsById(@PathVariable int id){
-        return boardRepository.findById(id).get();
+        Boards board = boardRepository.findById(id).get();
+        board.setHits(board.getHits()+1);
+        boardRepository.save(board);
+
+        return board;
     }
 
 

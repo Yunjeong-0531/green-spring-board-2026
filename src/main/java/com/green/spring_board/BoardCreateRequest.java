@@ -1,29 +1,17 @@
 package com.green.spring_board;
 
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
+@Getter
 public class BoardCreateRequest {
     private String title;
     private String content;
 
-    public BoardCreateRequest(String title, String content){
-        this.title = title;
-        this.content = content;
-    }
-
-    public BoardCreateRequest(){}
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
 }

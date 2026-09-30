@@ -1,10 +1,18 @@
 package com.green.spring_board;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.Cache;
 
 @Entity
 @Table(name = "boards")
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class Boards {
    @Id
    @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,35 +24,7 @@ public class Boards {
    @Column(nullable = false)
    private String content;
 
-   public Boards() {}
+   @Column(nullable = false)
+   private int hits;
 
-   public Boards(int id, String content, String title) {
-      this.id = id;
-      this.content = content;
-      this.title = title;
-   }
-
-   public String getContent() {
-      return content;
-   }
-
-   public void setContent(String content) {
-      this.content = content;
-   }
-
-   public String getTitle() {
-      return title;
-   }
-
-   public void setTitle(String title) {
-      this.title = title;
-   }
-
-   public int getId() {
-      return id;
-   }
-
-   public void setId(int id) {
-      this.id = id;
-   }
 }
