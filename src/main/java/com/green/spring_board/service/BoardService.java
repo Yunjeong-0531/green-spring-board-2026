@@ -23,7 +23,7 @@ public class BoardService {
     //상세 조회
     public Boards getBoardDetail(int id){
         Optional<Boards> optionalBoards = boardRepository.findById(id);
-        //비어있을 경우
+        //잘못된 게시글 id
         if(optionalBoards.isEmpty()){
             return null;
         }
@@ -52,15 +52,17 @@ public class BoardService {
     //수정
     public int updateBoard(int id, BoardCreateRequest boardCreateRequest){
         Optional<Boards> optionalBoards = boardRepository.findById(id);
-        //비어있을 경우
+        //잘못된 게시글 id
         if(optionalBoards.isEmpty()){
             return -1;
         }
 
         Boards board = optionalBoards.get();
+
+        //제목 내용이 비었을 때
         if ((boardCreateRequest.getTitle() == null || boardCreateRequest.getTitle().isBlank()) &&
                 (boardCreateRequest.getContent() == null || boardCreateRequest.getContent().isBlank())) {
-            return -1;
+            return -2;
         }
         if (boardCreateRequest.getTitle() != null && !boardCreateRequest.getTitle().isBlank()) {
             board.setTitle(boardCreateRequest.getTitle());

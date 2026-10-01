@@ -45,7 +45,7 @@ public class BoardController {
         int newBoardId = boardService.createBoard(boardCreateRequest);
 
         if(newBoardId == -1){
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().build();
         }
 
         URI location = URI.create("api/board/"+newBoardId);
@@ -57,10 +57,11 @@ public class BoardController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBoard(@PathVariable int id){
         int code = boardService.deleteBoard(id);
-
+        //잘못된 게시글 id
         if(code ==-1){
             return ResponseEntity.notFound().build();
         }
+
         return ResponseEntity.noContent().build();
     }
 //수정
@@ -68,8 +69,12 @@ public class BoardController {
     public ResponseEntity<Void> updateBoard(@PathVariable int id, @RequestBody BoardCreateRequest boardCreateRequest){
             int code = boardService.updateBoard(id, boardCreateRequest);
             if(code ==-1){
-                return ResponseEntity.badRequest().build();
+                return ResponseEntity.notFound().build();
             }
+            //내용 비었을 때
+             if(code == -2){
+                return ResponseEntity.badRequest().build();
+             }
 
             return ResponseEntity.ok().build();
 
