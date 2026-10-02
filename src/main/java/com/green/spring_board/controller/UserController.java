@@ -85,4 +85,53 @@ public class UserController {
         }
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout (
+            HttpServletRequest request
+    ){
+        HttpSession session = request.getSession(false);
+
+        if(session==null || session.getAttribute("userId")==null){
+            return ResponseEntity.status(401).build();
+        }
+        session.invalidate();
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("{id}")
+    public ResponseEntity<Void> updateInfo(
+            HttpServletRequest request,
+    @RequestBody MyInfoResponse myInfoResponse){
+        //현재 유저 가져와서 해당 유저 정보로 덮어씌우기
+        //null이면 수정하지 않기
+        try {
+            HttpSession session = request.getSession(false);
+            if (session == null || session.getAttribute("userId") == null) {
+                return ResponseEntity.status(401).build();
+            }
+            int id = (int) session.getAttribute("userId");
+            userService.updateInfo(id, myInfoResponse);
+            return ResponseEntity.ok().build();
+        } catch (ResourceNotFoundException e){
+            return ResponseEntity.notFound().build();
+        } catch (Exception e){
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> deleteUser(
+            HttpServletRequest request
+    ){
+        HttpSession session = request.getSession(false);
+        if(session ==null||session.getAttribute("userId")==null){
+            return ResponseEntity.status(401).build();
+        }
+        int id = (int)session.getAttribute("userId");
+        userService.deleteUser(id);
+        session.invalidate();
+
+        return ResponseEntity.noContent().build();
+    }
+
 }
