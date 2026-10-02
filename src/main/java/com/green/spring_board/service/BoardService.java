@@ -38,7 +38,7 @@ public class BoardService {
     }
 
     //생성
-    public int createBoard(BoardCreateRequest boardCreateRequest){
+    public int createBoard(BoardCreateRequest boardCreateRequest, int id){
         System.out.println(boardCreateRequest.getTitle() +":"+ boardCreateRequest.getContent());
         if(boardCreateRequest.getTitle() == null || boardCreateRequest.getTitle().isBlank()) {
             throw new UserRequestException("잘못된 입력값입니다.");
@@ -49,6 +49,7 @@ public class BoardService {
         Board board = new Board();
         board.setTitle(boardCreateRequest.getTitle());
         board.setContent(boardCreateRequest.getContent());
+
 
         Board savedBoard = boardRepository.save(board);
         return savedBoard.getId();

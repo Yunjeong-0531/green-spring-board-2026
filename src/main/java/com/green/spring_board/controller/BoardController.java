@@ -9,9 +9,10 @@ import com.green.spring_board.entity.Board;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
-
+import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.List;
+import jakarta.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping("api/board")
@@ -47,9 +48,15 @@ public class BoardController {
 
     //삽입
     @PostMapping
-    public ResponseEntity<Void> createBoard(@RequestBody BoardCreateRequest boardCreateRequest) {
+    public ResponseEntity<Void> createBoard(@RequestBody BoardCreateRequest boardCreateRequest,
+                                            HttpServletRequest request) {
         try {
-            int newBoardId = boardService.createBoard(boardCreateRequest);
+            HttpSession session = request.getSession(false);
+            if(session==null ||session.getAttribute("userId")==null){
+                return ResponseEntity.status(401).build();
+            }
+            int id = (int) session.getAttribute("userId");
+            int newBoardId = boardService.createBoard(boardCreateRequest, id);
             URI location = URI.create("api/board/" + newBoardId);
             return ResponseEntity.created(location).build();
 
