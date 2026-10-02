@@ -8,6 +8,8 @@ import com.green.spring_board.repository.BoardRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,6 +49,7 @@ public class BoardService {
         Board board = new Board();
         board.setTitle(boardCreateRequest.getTitle());
         board.setContent(boardCreateRequest.getContent());
+
         Board savedBoard = boardRepository.save(board);
         return savedBoard.getId();
     }
@@ -71,6 +74,7 @@ public class BoardService {
         if (boardCreateRequest.getContent() != null && !boardCreateRequest.getContent().isBlank()) {
             board.setContent(boardCreateRequest.getContent());
         }
+
         boardRepository.save(board);
 
 

@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @AllArgsConstructor
@@ -88,6 +89,7 @@ public class UserService {
         if (myInfoResponse.getNickname() != null && !myInfoResponse.getNickname().isBlank()) {
             user.setNickname(myInfoResponse.getNickname());
         }
+
         userRepository.save(user);
     }
 
