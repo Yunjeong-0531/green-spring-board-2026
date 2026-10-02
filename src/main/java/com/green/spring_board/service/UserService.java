@@ -1,14 +1,20 @@
 package com.green.spring_board.service;
 
+import com.green.spring_board.dto.LoginRequest;
+import com.green.spring_board.dto.MyInfoResponse;
 import com.green.spring_board.dto.SignUpRequest;
 import com.green.spring_board.entity.User;
 import com.green.spring_board.exceptions.ResourceConflictException;
+import com.green.spring_board.exceptions.ResourceNotFoundException;
+import com.green.spring_board.exceptions.UnauthenticatedException;
 import com.green.spring_board.exceptions.UserRequestException;
 import com.green.spring_board.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @AllArgsConstructor
 @Service
@@ -34,5 +40,34 @@ public class UserService {
         user.setEmail(signUpRequest.getEmail());
         user.setPassword(hashedPassword);
         userRepository.save(user);
+    }
+
+    public int login(LoginRequest loginRequest){
+        //사용자가 넘겨준 이메일 존재하는지 확인
+        Optional<User> userOptional = userRepository.findByEmail(loginRequest.getEmail());
+
+        if (userOptional.isEmpty()){
+            throw new ResourceNotFoundException("존재하지 않는 이메일입니다.");
+        }
+        User user = userOptional.get();
+        //존재한다면 비밀번호 동일한지 확인
+        if(!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())){
+            throw new UnauthenticatedException("잘못된 비밀번호입니다.");
+        }
+        //로그인 성공
+        return user.getId();
+
+    }
+
+    public MyInfoResponse getUserInfo(int id){
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isEmpty()){
+            throw new ResourceNotFoundException("존재하지 않는 사용자id가 입력되었습니다.");
+        }
+
+        User user = userOptional.get();
+
+        return new MyInfoResponse(
+                user.getEmail(), user.getEmail());
     }
 }
