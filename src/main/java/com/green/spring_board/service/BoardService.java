@@ -4,7 +4,6 @@ import com.green.spring_board.dto.BoardResponse;
 import com.green.spring_board.dto.BoardUpdateRequest;
 import com.green.spring_board.entity.User;
 import com.green.spring_board.exceptions.ResourceNotFoundException;
-import com.green.spring_board.exceptions.UserRequestException;
 import com.green.spring_board.dto.BoardCreateRequest;
 import com.green.spring_board.entity.Board;
 import com.green.spring_board.repository.BoardRepository;
@@ -12,9 +11,6 @@ import com.green.spring_board.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,12 +47,7 @@ public class BoardService {
     //생성
     public int createBoard(BoardCreateRequest boardCreateRequest, int id){
         System.out.println(boardCreateRequest.getTitle() +":"+ boardCreateRequest.getContent());
-        if(boardCreateRequest.getTitle() == null || boardCreateRequest.getTitle().isBlank()) {
-            throw new UserRequestException("잘못된 입력값입니다.");
-        }
-        if(boardCreateRequest.getContent() == null || boardCreateRequest.getContent().isBlank()) {
-            throw new UserRequestException("잘못된 입력값입니다.");
-        }
+
         Board board = new Board();
         board.setTitle(boardCreateRequest.getTitle());
         board.setContent(boardCreateRequest.getContent());
@@ -76,27 +67,16 @@ public class BoardService {
         if(optionalBoards.isEmpty()){
             throw new ResourceNotFoundException("요청한 게시글을 찾지 못했습니다.");
         }
-
         Board board = optionalBoards.get();
-
-        // 제목 내용이 비었을 때
-        if ((boardUpdateRequest.getTitle() == null || boardUpdateRequest.getTitle().isBlank()) &&
-                (boardUpdateRequest.getContent() == null || boardUpdateRequest.getContent().isBlank())) {
-            throw new UserRequestException("잘못된 입력값입니다.");
-        }
 
         if (boardUpdateRequest.getTitle() != null && !boardUpdateRequest.getTitle().isBlank()) {
             board.setTitle(boardUpdateRequest.getTitle());
         }
-
         if (boardUpdateRequest.getContent() != null && !boardUpdateRequest.getContent().isBlank()) {
             board.setContent(boardUpdateRequest.getContent());
         }
 
-
         boardRepository.save(board);
-
-
     }
     //삭제
     public void deleteBoard(int id){
