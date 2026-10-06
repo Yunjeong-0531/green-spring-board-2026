@@ -1,6 +1,6 @@
 package com.green.spring_board.dto;
 
-import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -10,21 +10,19 @@ import lombok.Setter;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
 @Setter
-public class SignUpRequest {
+@Getter
 
-    @NotBlank
-    @Email
-    @Size(max=100)
-    private String email;
 
-    @NotBlank
-    @Size(min=6)
-    private String password;
 
-    @NotBlank
-    @Size(max=30)
-    private String nickname;
+public class BoardUpdateRequest {
+
+
+    @Size(min=10, max=50)
+    private String title;
+
+
+    @Size(min=10)
+    private String content;
+
 }
-

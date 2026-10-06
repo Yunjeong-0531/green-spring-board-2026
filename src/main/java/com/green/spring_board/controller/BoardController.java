@@ -1,11 +1,14 @@
 package com.green.spring_board.controller;
 
 
+import com.green.spring_board.dto.BoardResponse;
+import com.green.spring_board.dto.BoardUpdateRequest;
 import com.green.spring_board.exceptions.ResourceNotFoundException;
 import com.green.spring_board.exceptions.UserRequestException;
 import com.green.spring_board.dto.BoardCreateRequest;
 import com.green.spring_board.service.BoardService;
 import com.green.spring_board.entity.Board;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.List;
 import jakarta.servlet.http.HttpSession;
+
 
 @RestController
 @RequestMapping("api/board")
@@ -23,7 +27,7 @@ public class BoardController {
 
     //전체 조회
     @GetMapping
-    public ResponseEntity<List<Board>> getBoards() {
+    public ResponseEntity<List<BoardResponse>> getBoards() {
         return ResponseEntity.ok(
                 boardService.getAllBoards()
         );
@@ -32,10 +36,10 @@ public class BoardController {
 
     //특정게시글조회
     @GetMapping("/{id}")
-    public ResponseEntity<Board> getBoardsById(@PathVariable int id) {
+    public ResponseEntity<BoardResponse> getBoardsById(@PathVariable int id) {
         try {
-            Board board = boardService.getBoardDetail(id);
-            return ResponseEntity.ok(board);
+            BoardResponse boardResponse = boardService.getBoardDetail(id);
+            return ResponseEntity.ok(boardResponse);
         } catch (ResourceNotFoundException e) {
             //게시글 못 찾았을 때
             return ResponseEntity.notFound().build();
@@ -48,7 +52,8 @@ public class BoardController {
 
     //삽입
     @PostMapping
-    public ResponseEntity<Void> createBoard(@RequestBody BoardCreateRequest boardCreateRequest,
+    public ResponseEntity<Void> createBoard(
+            @Valid @RequestBody BoardCreateRequest boardCreateRequest,
                                             HttpServletRequest request) {
         try {
             HttpSession session = request.getSession(false);
@@ -62,6 +67,8 @@ public class BoardController {
 
         } catch (UserRequestException e) {
             return ResponseEntity.badRequest().build();
+        }catch (ResourceNotFoundException e){
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
@@ -69,9 +76,10 @@ public class BoardController {
 
     //수정
     @PatchMapping("/{id}")
-    public ResponseEntity<Void> updateBoard(@PathVariable int id, @RequestBody BoardCreateRequest boardCreateRequest) {
+    public ResponseEntity<Void> updateBoard(@PathVariable int id,
+                                            @Valid @RequestBody BoardUpdateRequest boardUpdateRequest) {
         try {
-            boardService.updateBoard(id, boardCreateRequest);
+            boardService.updateBoard(id, boardUpdateRequest);
             return ResponseEntity.ok().build();
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();

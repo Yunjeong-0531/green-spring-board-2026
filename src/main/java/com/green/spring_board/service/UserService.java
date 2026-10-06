@@ -1,9 +1,8 @@
 package com.green.spring_board.service;
 
 import com.green.spring_board.dto.LoginRequest;
-import com.green.spring_board.dto.MyInfoResponse;
+import com.green.spring_board.dto.UserUpdateRequest;
 import com.green.spring_board.dto.SignUpRequest;
-import com.green.spring_board.entity.Board;
 import com.green.spring_board.entity.User;
 import com.green.spring_board.exceptions.ResourceConflictException;
 import com.green.spring_board.exceptions.ResourceNotFoundException;
@@ -15,7 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @AllArgsConstructor
@@ -61,7 +59,7 @@ public class UserService {
 
     }
 
-    public MyInfoResponse getUserInfo(int id){
+    public UserUpdateRequest getUserInfo(int id){
         Optional<User> userOptional = userRepository.findById(id);
         if (userOptional.isEmpty()){
             throw new ResourceNotFoundException("존재하지 않는 사용자id가 입력되었습니다.");
@@ -69,12 +67,12 @@ public class UserService {
 
         User user = userOptional.get();
 
-        return new MyInfoResponse(
+        return new UserUpdateRequest(
                 user.getEmail(), user.getNickname());
     }
 
     public void updateInfo(int id,
-                           MyInfoResponse myInfoResponse){
+                           UserUpdateRequest userUpdateRequest){
         Optional<User> userOptional = userRepository.findById(id);
         if(userOptional.isEmpty()){
             throw new ResourceNotFoundException("존재하지 않는 사용자 Id입니다.");
@@ -83,11 +81,11 @@ public class UserService {
         User user = userOptional.get();
 
         //제목 내용이 비었을 때
-        if (myInfoResponse.getEmail() != null && !myInfoResponse.getEmail().isBlank()) {
-            user.setEmail(myInfoResponse.getEmail());
+        if (userUpdateRequest.getEmail() != null && !userUpdateRequest.getEmail().isBlank()) {
+            user.setEmail(userUpdateRequest.getEmail());
         }
-        if (myInfoResponse.getNickname() != null && !myInfoResponse.getNickname().isBlank()) {
-            user.setNickname(myInfoResponse.getNickname());
+        if (userUpdateRequest.getNickname() != null && !userUpdateRequest.getNickname().isBlank()) {
+            user.setNickname(userUpdateRequest.getNickname());
         }
 
         userRepository.save(user);

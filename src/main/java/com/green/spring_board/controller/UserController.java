@@ -1,22 +1,19 @@
 package com.green.spring_board.controller;
 
 import com.green.spring_board.dto.LoginRequest;
-import com.green.spring_board.dto.MyInfoResponse;
+import com.green.spring_board.dto.UserUpdateRequest;
 import com.green.spring_board.dto.SignUpRequest;
-import com.green.spring_board.entity.User;
 import com.green.spring_board.exceptions.ResourceConflictException;
 import com.green.spring_board.exceptions.ResourceNotFoundException;
 import com.green.spring_board.exceptions.UnauthenticatedException;
 import com.green.spring_board.exceptions.UserRequestException;
-import com.green.spring_board.repository.UserRepository;
 import com.green.spring_board.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import jakarta.servlet.http.HttpSession;
-
-import java.util.Optional;
 
 
 @RestController
@@ -27,7 +24,7 @@ public class UserController {
 
 
     @PostMapping("/signup")
-    public ResponseEntity<Void> signup(@RequestBody SignUpRequest signUpRequest){
+    public ResponseEntity<Void> signup(@Valid @RequestBody SignUpRequest signUpRequest){
         try {
             userService.signUp(signUpRequest);
             return ResponseEntity.ok().build();
@@ -43,7 +40,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<Void> login(
-            @RequestBody LoginRequest loginRequest,
+            @Valid @RequestBody LoginRequest loginRequest,
             HttpServletRequest httpServletRequest ) {
         try{
             int userId = userService.login(loginRequest);
@@ -63,7 +60,7 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<MyInfoResponse> getCurrentUser(
+    public ResponseEntity<UserUpdateRequest> getCurrentUser(
             HttpServletRequest httpServletRequest){
         try {
             //내 정보 조회하기(이메일과 닉네임)
@@ -76,8 +73,8 @@ public class UserController {
             int userId = (int) session.getAttribute("userId");
 
             //3.id로 db조회, 이메일과 닉네임 받아오기, 반환
-            MyInfoResponse myInfoResponse = userService.getUserInfo(userId);
-            return ResponseEntity.ok().body(myInfoResponse);
+            UserUpdateRequest userUpdateRequest = userService.getUserInfo(userId);
+            return ResponseEntity.ok().body(userUpdateRequest);
         } catch (ResourceNotFoundException e){
             return ResponseEntity.notFound().build();
         } catch (Exception e){
@@ -101,7 +98,7 @@ public class UserController {
     @PatchMapping("{id}")
     public ResponseEntity<Void> updateInfo(
             HttpServletRequest request,
-    @RequestBody MyInfoResponse myInfoResponse){
+    @Valid @RequestBody UserUpdateRequest userUpdateRequest){
         //현재 유저 가져와서 해당 유저 정보로 덮어씌우기
         //null이면 수정하지 않기
         try {
@@ -110,7 +107,7 @@ public class UserController {
                 return ResponseEntity.status(401).build();
             }
             int id = (int) session.getAttribute("userId");
-            userService.updateInfo(id, myInfoResponse);
+            userService.updateInfo(id, userUpdateRequest);
             return ResponseEntity.ok().build();
         } catch (ResourceNotFoundException e){
             return ResponseEntity.notFound().build();

@@ -34,7 +34,7 @@ public class Board {
    @Column(nullable = false, insertable = false, updatable = false)
    private LocalDateTime updatedDatetime;
 
-   @ManyToOne(fetch = FetchType.LAZY)
+   @ManyToOne(fetch = FetchType.EAGER)
    @JoinColumn(name = "user_id")
    private User user;
 
