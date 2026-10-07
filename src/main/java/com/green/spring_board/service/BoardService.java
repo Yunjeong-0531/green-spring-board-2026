@@ -2,15 +2,18 @@ package com.green.spring_board.service;
 
 import com.green.spring_board.dto.BoardResponse;
 import com.green.spring_board.dto.BoardUpdateRequest;
+import com.green.spring_board.entity.Like;
 import com.green.spring_board.entity.User;
 import com.green.spring_board.exceptions.AuthorizationFailureException;
 import com.green.spring_board.exceptions.ResourceNotFoundException;
 import com.green.spring_board.dto.BoardCreateRequest;
 import com.green.spring_board.entity.Board;
 import com.green.spring_board.repository.BoardRepository;
+import com.green.spring_board.repository.LikeRepository;
 import com.green.spring_board.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +23,7 @@ import java.util.Optional;
 public class BoardService {
     private BoardRepository boardRepository;
     private UserRepository userRepository;
+    private LikeRepository likeRepository;
 
     //전체 조회
     public List<BoardResponse> getAllBoards()
@@ -105,6 +109,31 @@ public class BoardService {
         boardRepository.deleteById(id);
     }
 
+    public void pressLike(int id, int userId){
+        //게시글 존재 여부 확인
+        Optional<Board> optionalBoard = boardRepository.findById(id);
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if(optionalBoard.isEmpty()){
+            throw  new ResourceNotFoundException("존재하지 않는 게시글입니다.");
+        }
+        if(optionalUser.isEmpty()){
+            throw  new ResourceNotFoundException("존재하지 않는 사용자입니다.");
+        }
+        Board board = optionalBoard.get();
+        User user = optionalUser.get();
+
+        Optional<Like> likeOptional = likeRepository.findByUserIdAndBoardId(userId,id);
+        if(likeOptional.isEmpty()) {
+            Like like = new Like();
+            like.setBoard(board);
+            like.setUser(user);
+            likeRepository.save(like);
+        } else{
+            likeRepository.delete(likeOptional.get());
+        }
+
+
+    }
 
 
 

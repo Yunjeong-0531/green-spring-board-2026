@@ -91,4 +91,24 @@ public class BoardController {
             return ResponseEntity.ok().body(ApiResponse.ok());
 //            return ResponseEntity.noContent().build();
     }
+
+
+    //좋아요
+    @PostMapping("/like/{id}")
+    public ResponseEntity<ApiResponse<Void>> likeBoard(
+            HttpServletRequest request,
+            @PathVariable int id
+    ){
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("userId") == null) {
+            throw new AuthorizationFailureException("로그인이 필요합니다.");
+        }
+        int userId = (int) session.getAttribute("userId");
+
+        boardService.pressLike(id, userId);
+        return ResponseEntity.ok().body(ApiResponse.ok());
+
+    }
+
+
 }
