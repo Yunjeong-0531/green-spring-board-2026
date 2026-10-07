@@ -10,6 +10,7 @@ import com.green.spring_board.exceptions.AuthorizationFailureException;
 import com.green.spring_board.exceptions.ResourceConflictException;
 import com.green.spring_board.exceptions.ResourceNotFoundException;
 import com.green.spring_board.exceptions.UnauthenticatedException;
+import com.green.spring_board.repository.LikeRepository;
 import com.green.spring_board.repository.UserRepository;
 
 import com.green.spring_board.repository.BoardRepository;
@@ -26,6 +27,7 @@ import java.util.Optional;
 public class UserService {
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
+    private final LikeRepository likeRepository;
     private final PasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
 
     public void signUp(SignUpRequest signUpRequest){
@@ -120,7 +122,16 @@ public class UserService {
             throw new ResourceNotFoundException("작성한 게시글이 없습니다.");
         }
         return ListBoards.stream()
-                .map(BoardResponse::from)
+                .map(board ->
+                        BoardResponse.from(board,isLikedByMe(id, board.getId())))
                 .toList();
+
     }
+
+    //중복메서드
+    public boolean isLikedByMe(int userId, int boardId){
+        boolean isExists = likeRepository.existsByUserIdAndBoardId(userId, boardId);
+        return isExists;
+    }
+
 }

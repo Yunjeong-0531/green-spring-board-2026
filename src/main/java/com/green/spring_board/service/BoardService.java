@@ -2,6 +2,7 @@ package com.green.spring_board.service;
 
 import com.green.spring_board.dto.BoardResponse;
 import com.green.spring_board.dto.BoardUpdateRequest;
+import com.green.spring_board.dto.LikeDetailResponse;
 import com.green.spring_board.entity.Like;
 import com.green.spring_board.entity.User;
 import com.green.spring_board.exceptions.AuthorizationFailureException;
@@ -25,16 +26,28 @@ public class BoardService {
     private UserRepository userRepository;
     private LikeRepository likeRepository;
 
-    //전체 조회
-    public List<BoardResponse> getAllBoards()
+    //전체 조회 (로그인)
+    public List<BoardResponse> getAllBoards(int userId)
     {
+        List<Board> BoardList = boardRepository.findAll();
+         return BoardList.stream()
+                 .map( board ->
+            BoardResponse.from(board,isLikedByMe(userId,board.getId()))
+                )
+                    .toList();
+
+
+    }
+    //전체 조회(비로그인)
+    public List<BoardResponse> getAllBoards(){
         return boardRepository.findAll()
                 .stream()
-                .map(BoardResponse::from)
+                .map(board ->
+                        BoardResponse.from(board,false))
                 .toList();
     }
 
-    //상세 조회
+    //상세 조회(비로그인)
     public BoardResponse getBoardDetail(int id) {
         Optional<Board> optionalBoards = boardRepository.findById(id);
         //잘못된 게시글 id
@@ -46,7 +59,21 @@ public class BoardService {
             board.setHits(board.getHits() + 1);
             boardRepository.save(board);
 
-            return BoardResponse.from(board);
+            return BoardResponse.from(board,false);
+    }
+    //상세 조회
+    public BoardResponse getBoardDetail(int userId, int id) {
+        Optional<Board> optionalBoards = boardRepository.findById(id);
+        //잘못된 게시글 id
+        if(optionalBoards.isEmpty()){
+            throw new ResourceNotFoundException("요청한 게시글을 찾지 못했습니다.");
+        }
+        Board board = optionalBoards.get();
+
+        board.setHits(board.getHits() + 1);
+        boardRepository.save(board);
+
+        return BoardResponse.from(board, isLikedByMe(userId,id));
     }
 
     //생성
@@ -76,7 +103,7 @@ public class BoardService {
         //요청자의 userId, 작성자의 userId비교
         if( board.getUser().getId() != userId){
             throw new AuthorizationFailureException("작성자만 수정이 가능합니다.");
-        };
+        }
 
 
         if (boardUpdateRequest.getTitle() != null && !boardUpdateRequest.getTitle().isBlank()) {
@@ -142,6 +169,20 @@ public class BoardService {
     }
 
 
+    public LikeDetailResponse viewLikeDetails(int id) {
+        List<Like> likes = likeRepository.findByBoardId(id);
 
+        List<String> likedUserNames = likes.stream()
+                .map(like ->like.getUser().getNickname())
+                .toList();
+
+        return new LikeDetailResponse(likedUserNames);
+
+    }
+
+    public boolean isLikedByMe(int userId, int boardId){
+        boolean isExists = likeRepository.existsByUserIdAndBoardId(userId, boardId);
+                return isExists;
+    }
 }
 

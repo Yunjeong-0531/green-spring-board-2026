@@ -20,15 +20,16 @@ public class BoardResponse {
     Integer authorId;//작성자 ID
     String authorNickName; //작성자 닉네임
     int likeCount;
+    boolean isLikedByMe;
     LocalDateTime createdDateTime;
     LocalDateTime updatedDateTime;
 
-    public static BoardResponse from(Board board){
+    public static BoardResponse from(Board board, Boolean isLikedByMe) {
 
         Integer authorId = null;
         String authorNickName = null;
 
-        if(board.getUser()!=null){
+        if (board.getUser() != null) {
             authorId = board.getUser().getId();
             authorNickName = board.getUser().getNickname();
         }
@@ -41,8 +42,9 @@ public class BoardResponse {
                 authorId,
                 authorNickName,
                 board.getLikeCount(),
+                isLikedByMe,
                 board.getCreatedDatetime(),
                 board.getUpdatedDatetime());
     }
-
 }
+
