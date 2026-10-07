@@ -1,9 +1,7 @@
 package com.green.spring_board.controller;
 
-import com.green.spring_board.dto.ApiResponse;
-import com.green.spring_board.dto.LoginRequest;
-import com.green.spring_board.dto.UserUpdateRequest;
-import com.green.spring_board.dto.SignUpRequest;
+import com.green.spring_board.dto.*;
+import com.green.spring_board.entity.Board;
 import com.green.spring_board.exceptions.*;
 import com.green.spring_board.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,6 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
+
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/user")
@@ -61,6 +62,20 @@ public class UserController {
 
     }
 
+    @GetMapping("/me/board")
+    public ResponseEntity<ApiResponse<List<BoardResponse>>> getMyBoard(HttpServletRequest request){
+        HttpSession session = request.getSession(false);
+        if(session==null||session.getAttribute("userId")==null){
+            throw new UnauthenticatedException("로그인이 필요합니다.");
+        }
+        int id = (int) session.getAttribute("userId");
+
+        List<BoardResponse> boardResponses = userService.getMyBoard(id);
+        return ResponseEntity.ok(ApiResponse.ok(boardResponses));
+
+
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout (
             HttpServletRequest request
@@ -83,7 +98,7 @@ public class UserController {
 
             HttpSession session = request.getSession(false);
             if (session == null || session.getAttribute("userId") == null) {
-               throw new AuthorizationFailureException("로그인이 필요합니다.") ;
+               throw new UnauthenticatedException("로그인이 필요합니다.") ;
             }
             int id = (int) session.getAttribute("userId");
             userService.updateInfo(id, userUpdateRequest);
@@ -97,7 +112,7 @@ public class UserController {
     ){
         HttpSession session = request.getSession(false);
         if(session ==null||session.getAttribute("userId")==null){
-            throw new AuthorizationFailureException("로그인이 필요합니다");
+            throw new UnauthenticatedException("로그인이 필요합니다");
         }
         int id = (int)session.getAttribute("userId");
         userService.deleteUser(id);

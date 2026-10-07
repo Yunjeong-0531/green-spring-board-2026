@@ -1,24 +1,31 @@
 package com.green.spring_board.service;
 
+import com.green.spring_board.dto.BoardResponse;
 import com.green.spring_board.dto.LoginRequest;
 import com.green.spring_board.dto.UserUpdateRequest;
 import com.green.spring_board.dto.SignUpRequest;
+import com.green.spring_board.entity.Board;
 import com.green.spring_board.entity.User;
+import com.green.spring_board.exceptions.AuthorizationFailureException;
 import com.green.spring_board.exceptions.ResourceConflictException;
 import com.green.spring_board.exceptions.ResourceNotFoundException;
 import com.green.spring_board.exceptions.UnauthenticatedException;
 import com.green.spring_board.repository.UserRepository;
+
+import com.green.spring_board.repository.BoardRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @AllArgsConstructor
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final BoardRepository boardRepository;
     private final PasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
 
     public void signUp(SignUpRequest signUpRequest){
@@ -60,6 +67,9 @@ public class UserService {
         }
 
         User user = userOptional.get();
+        if(user.getId()!=id){
+            throw new AuthorizationFailureException("권한이 없습니다.");
+        }
 
         return new UserUpdateRequest(
                 user.getEmail(), user.getNickname());
@@ -73,6 +83,10 @@ public class UserService {
         }
         //이메일 닉네임 유효값 확인
         User user = userOptional.get();
+
+        if(user.getId()!=id){
+            throw new AuthorizationFailureException("권한이 없습니다.");
+        }
 
         //제목 내용이 비었을 때
         if (userUpdateRequest.getEmail() != null && !userUpdateRequest.getEmail().isBlank()) {
@@ -93,5 +107,20 @@ public class UserService {
         User user = userOptional.get();
         userRepository.delete(user);
 
+    }
+
+    public List<BoardResponse> getMyBoard(int id){
+        Optional<User> userOptional = userRepository.findById(id);
+        if(userOptional.isEmpty()){
+            throw new ResourceNotFoundException("존재하지 않는 사용자 id");
+        }
+        User user = userOptional.get();
+        List<Board> ListBoards=boardRepository.findByUser(user);
+        if(ListBoards.isEmpty()){
+            throw new ResourceNotFoundException("작성한 게시글이 없습니다.");
+        }
+        return ListBoards.stream()
+                .map(BoardResponse::from)
+                .toList();
     }
 }

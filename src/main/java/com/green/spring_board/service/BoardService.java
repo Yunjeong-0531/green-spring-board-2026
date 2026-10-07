@@ -3,6 +3,7 @@ package com.green.spring_board.service;
 import com.green.spring_board.dto.BoardResponse;
 import com.green.spring_board.dto.BoardUpdateRequest;
 import com.green.spring_board.entity.User;
+import com.green.spring_board.exceptions.AuthorizationFailureException;
 import com.green.spring_board.exceptions.ResourceNotFoundException;
 import com.green.spring_board.dto.BoardCreateRequest;
 import com.green.spring_board.entity.Board;
@@ -61,13 +62,18 @@ public class BoardService {
         return savedBoard.getId();
     }
     //수정
-    public void updateBoard(int id, BoardUpdateRequest boardUpdateRequest){
+    public void updateBoard(int id, BoardUpdateRequest boardUpdateRequest, int userId){
         Optional<Board> optionalBoards = boardRepository.findById(id);
         //잘못된 게시글 id
         if(optionalBoards.isEmpty()){
             throw new ResourceNotFoundException("요청한 게시글을 찾지 못했습니다.");
         }
         Board board = optionalBoards.get();
+        //요청자의 userId, 작성자의 userId비교
+        if( board.getUser().getId() != userId){
+            throw new AuthorizationFailureException("작성자만 수정이 가능합니다.");
+        };
+
 
         if (boardUpdateRequest.getTitle() != null && !boardUpdateRequest.getTitle().isBlank()) {
             board.setTitle(boardUpdateRequest.getTitle());
@@ -79,10 +85,22 @@ public class BoardService {
         boardRepository.save(board);
     }
     //삭제
-    public void deleteBoard(int id){
-        boolean isBoardExists = boardRepository.existsById(id);
-        if(!isBoardExists){
+    public void deleteBoard(int id, int userId){
+//        boolean isBoardExists = boardRepository.existsById(id);
+//        if(!isBoardExists){
+//            throw new ResourceNotFoundException("요청한 게시글을 찾지 못했습니다.");
+//        }
+//
+        Optional<Board> optionalBoard = boardRepository.findById(id);
+        if(optionalBoard.isEmpty()){
             throw new ResourceNotFoundException("요청한 게시글을 찾지 못했습니다.");
+        }
+        Board board = optionalBoard.get();
+        if(board.getUser().getId()!=userId){
+
+            ///유저가 없는 경우 if문 필요
+
+            throw new AuthorizationFailureException("게시글 작성자만 삭제 가능합니다.");
         }
         boardRepository.deleteById(id);
     }
