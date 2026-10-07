@@ -128,8 +128,14 @@ public class BoardService {
             like.setBoard(board);
             like.setUser(user);
             likeRepository.save(like);
+
+            board.setLikeCount(board.getLikeCount()+1);
+            boardRepository.save(board);
         } else{
             likeRepository.delete(likeOptional.get());
+
+            board.setLikeCount(board.getLikeCount()-1);
+            boardRepository.save(board);
         }
 
 
