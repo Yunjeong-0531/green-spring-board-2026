@@ -4,6 +4,8 @@ import com.green.spring_board.dto.*;
 import com.green.spring_board.entity.Board;
 import com.green.spring_board.exceptions.*;
 import com.green.spring_board.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -18,10 +20,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/user")
 @AllArgsConstructor
+@Tag(name="그린보드 유저 API", description = "사용자 API입니다.")
 public class UserController {
     public final UserService userService;
 
-
+    @Operation(summary = "회원가입 API", description = "회원가입 시 사용")
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<Void>> signup(@Valid @RequestBody SignUpRequest signUpRequest) {
 
