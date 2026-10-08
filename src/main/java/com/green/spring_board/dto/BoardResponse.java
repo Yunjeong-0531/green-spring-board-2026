@@ -21,6 +21,7 @@ public class BoardResponse {
     String authorNickName; //작성자 닉네임
     int likeCount;
     boolean isLikedByMe;
+
     LocalDateTime createdDateTime;
     LocalDateTime updatedDateTime;
 

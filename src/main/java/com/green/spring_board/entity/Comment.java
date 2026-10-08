@@ -1,0 +1,37 @@
+package com.green.spring_board.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name ="comments")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class Comment {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id")
+    private Board board;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Column(nullable = false)
+    private String content;
+
+    @Column(nullable = false, insertable = false, updatable = false)
+    private LocalDateTime createdDatetime;
+    @Column(nullable = false, insertable = false, updatable = false)
+    private LocalDateTime updatedDatetime;
+}

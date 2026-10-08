@@ -30,61 +30,44 @@ import org.springframework.data.domain.Sort;
 @AllArgsConstructor
 @Service
 public class BoardService {
+    private final CommentService commentService;
     private BoardRepository boardRepository;
     private UserRepository userRepository;
     private LikeRepository likeRepository;
 
+
     //전체 조회 (로그인)
     public Page<BoardResponse> getAllBoards(int userId, int page, int size, String order)
-    {   Sort sort;
-        if(order.equals("latest")) {
-            sort = Sort.by(Sort.Direction.DESC, "createdDatetime");
-        } else if (order.equals("likes")) {
-            sort = Sort.by(Sort.Direction.DESC, "likeCount");
-        } else if (order.equals("views")) {
-            sort = Sort.by(Sort.Direction.DESC, "hits");
-        } else {
-            throw  new InvalidStateException("잘못된 정렬 옵션입니다.");
-        }
+    {
+        Pageable pageable = PageRequest.of(page,size,createSort(order));
+        Page<BoardResponse> boardResponses = boardRepository.findAll(pageable)
+                .map(board ->
+                        BoardResponse.from(board,isLikedByMe(userId,board.getId())
+                        )
+                );
 
-
-        Pageable pageable = PageRequest.of(page,size,sort);
-        Page<Board> boardList = boardRepository.findAll(pageable);
-
-        List<BoardResponse> boardResponses = boardList.getContent()
-                .stream()
-                .map( board ->
-            BoardResponse.from(board,isLikedByMe(userId,board.getId()))
-                )
-                .toList();
-
-         return new PageImpl<>(boardResponses,pageable,boardList.getTotalElements());
+        return boardResponses;
 
 
     }
     //전체 조회(비로그인)
     public Page<BoardResponse> getAllBoards(int page, int size, String order){
-        Sort sort;
-        if(order.equals("latest")) {
-            sort = Sort.by(Sort.Direction.DESC, "createdDatetime");
-        } else if (order.equals("likes")) {
-            sort = Sort.by(Sort.Direction.DESC, "likeCount");
-        } else if (order.equals("views")) {
-            sort = Sort.by(Sort.Direction.DESC, "hits");
-        } else {
-            throw  new InvalidStateException("잘못된 정렬 옵션입니다.");
-        }
 
-        Pageable pageable =PageRequest.of(page, size,sort);
-        Page<Board> boardList = boardRepository.findAll(pageable);
-       List<BoardResponse> boardResponses = boardList.getContent()
-                .stream()
+        Pageable pageable =PageRequest.of(page, size,createSort(order));
+        Page<BoardResponse> boardResponses = boardRepository.findAll(pageable)
                 .map(board ->
-                        BoardResponse.from(board,false))
-                .toList();
+                        BoardResponse.from(board,false)
+                );
+        return boardResponses;
+         }
 
-        return new PageImpl<>(boardResponses,pageable,boardList.getTotalElements());
-
+    private Sort createSort(String order){
+        return switch (order){
+            case "latest" -> Sort.by(Sort.Direction.DESC, "createdDatetime");
+            case "likes"  -> Sort.by(Sort.Direction.DESC, "likeCount");
+            case "views"  -> Sort.by(Sort.Direction.DESC, "hits");
+            default -> throw new InvalidStateException("잘못된 정렬 옵션입니다.");
+        };
     }
 
     //상세 조회(비로그인)
@@ -224,5 +207,6 @@ public class BoardService {
         return likeRepository.existsByUserIdAndBoardId(userId, boardId);
 
     }
+
 }
 
