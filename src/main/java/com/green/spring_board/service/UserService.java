@@ -69,11 +69,7 @@ public class UserService {
         }
 
         User user = userOptional.get();
-        if(user.getId()!=id){
-            throw new AuthorizationFailureException("권한이 없습니다.");
-        }
-
-        return new UserUpdateRequest(
+            return new UserUpdateRequest(
                 user.getEmail(), user.getNickname());
     }
 
@@ -86,11 +82,7 @@ public class UserService {
         //이메일 닉네임 유효값 확인
         User user = userOptional.get();
 
-        if(user.getId()!=id){
-            throw new AuthorizationFailureException("권한이 없습니다.");
-        }
-
-        //제목 내용이 비었을 때
+            //제목 내용이 비었을 때
         if (userUpdateRequest.getEmail() != null && !userUpdateRequest.getEmail().isBlank()) {
             user.setEmail(userUpdateRequest.getEmail());
         }

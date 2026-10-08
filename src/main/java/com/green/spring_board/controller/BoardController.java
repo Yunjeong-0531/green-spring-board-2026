@@ -1,6 +1,6 @@
 package com.green.spring_board.controller;
 
-
+import org.springframework.data.domain.Page;
 import com.green.spring_board.dto.*;
 import com.green.spring_board.exceptions.AuthorizationFailureException;
 import com.green.spring_board.service.BoardService;
@@ -24,23 +24,23 @@ public class BoardController {
 
     //전체 조회
     @GetMapping
-    public ResponseEntity<ApiResponse<List<BoardResponse>>> getBoards(
-            HttpServletRequest request
+    public ResponseEntity<ApiResponse<Page<BoardResponse>>> getBoards(
+            HttpServletRequest request,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "latest") String order
     ) {
 
         HttpSession session = request.getSession(false);
 
         if (session == null || session.getAttribute("userId") == null) {
-        List<BoardResponse> boardResponseList = boardService.getAllBoards();
+        Page<BoardResponse> boardResponseList = boardService.getAllBoards(page, size,order);
         return ResponseEntity.ok().body(ApiResponse.ok(boardResponseList));
         }
 
         int userId = (int) session.getAttribute("userId");
-        List<BoardResponse> boardResponseListLogin = boardService.getAllBoards(userId);
+        Page<BoardResponse> boardResponseListLogin = boardService.getAllBoards(userId, page, size, order);
         return ResponseEntity.ok().body(ApiResponse.ok(boardResponseListLogin));
-
-
-
 
     }
 
