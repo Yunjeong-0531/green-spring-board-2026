@@ -13,8 +13,8 @@ import java.util.Optional;
 public interface BoardRepository extends JpaRepository <Board, Integer> {
 
 
+    List<Board> findByUserIdAndIsDeletedFalse(int userId);
 
-    List<Board> findByUser(User user);
-    Page<Board> findAll(Pageable pageable);
+    Page<Board> findByIsDeletedFalse(Pageable pageable);
 
 }

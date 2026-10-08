@@ -10,6 +10,7 @@ import com.green.spring_board.exceptions.AuthorizationFailureException;
 import com.green.spring_board.exceptions.ResourceConflictException;
 import com.green.spring_board.exceptions.ResourceNotFoundException;
 import com.green.spring_board.exceptions.UnauthenticatedException;
+import com.green.spring_board.global.UserState;
 import com.green.spring_board.repository.LikeRepository;
 import com.green.spring_board.repository.UserRepository;
 
@@ -42,6 +43,7 @@ public class UserService {
         user.setNickname(signUpRequest.getNickname());
         user.setEmail(signUpRequest.getEmail());
         user.setPassword(hashedPassword);
+        user.setState(UserState.active);
         userRepository.save(user);
     }
 
@@ -53,6 +55,10 @@ public class UserService {
             throw new ResourceNotFoundException("존재하지 않는 이메일입니다.");
         }
         User user = userOptional.get();
+
+        if(user.getState()==UserState.quitted){
+            throw new ResourceNotFoundException("탈퇴된 회원입니다.");
+        }
         //존재한다면 비밀번호 동일한지 확인
         if(!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())){
             throw new UnauthenticatedException("잘못된 비밀번호입니다.");
@@ -69,6 +75,10 @@ public class UserService {
         }
 
         User user = userOptional.get();
+
+        if(user.getState()==UserState.quitted){
+            throw new ResourceNotFoundException("탈퇴된 회원입니다.");
+        }
             return new UserUpdateRequest(
                 user.getEmail(), user.getNickname());
     }
@@ -82,6 +92,9 @@ public class UserService {
         //이메일 닉네임 유효값 확인
         User user = userOptional.get();
 
+        if(user.getState()==UserState.quitted){
+            throw new ResourceNotFoundException("탈퇴된 회원입니다.");
+        }
             //제목 내용이 비었을 때
         if (userUpdateRequest.getEmail() != null && !userUpdateRequest.getEmail().isBlank()) {
             user.setEmail(userUpdateRequest.getEmail());
@@ -99,7 +112,8 @@ public class UserService {
             throw new ResourceNotFoundException("존재하지 않는 사용자 id");
         }
         User user = userOptional.get();
-        userRepository.delete(user);
+        user.setState(UserState.quitted);
+        userRepository.save(user);
 
     }
 
@@ -108,8 +122,14 @@ public class UserService {
         if(userOptional.isEmpty()){
             throw new ResourceNotFoundException("존재하지 않는 사용자 id");
         }
+        //이메일 닉네임 유효값 확인
         User user = userOptional.get();
-        List<Board> ListBoards=boardRepository.findByUser(user);
+
+        if(user.getState()==UserState.quitted){
+            throw new ResourceNotFoundException("탈퇴된 회원입니다.");
+        }
+
+        List<Board> ListBoards=boardRepository.findByUserIdAndIsDeletedFalse(id);
         if(ListBoards.isEmpty()){
             throw new ResourceNotFoundException("작성한 게시글이 없습니다.");
         }

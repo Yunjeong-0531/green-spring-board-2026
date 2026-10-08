@@ -40,7 +40,7 @@ public class CommentService {
             throw new ResourceNotFoundException("존재하지 않는 게시글입니다.");
         }
 
-        return commentRepository.findByBoardId(boardId)
+        return commentRepository.findByBoardIdAndIsDeletedFalse(boardId)
                 .stream()
                 .map(CommentResponse::from)
                 .toList();
@@ -50,6 +50,10 @@ public class CommentService {
     public void updateComment(int id, int userId, CommentCreateRequest commentUpdateRequest) {
        Comment comment = commentRepository.findById(id)
                .orElseThrow(()-> new ResourceNotFoundException("존재하지 않는 댓글입니다."));
+
+       if(comment.isDeleted()){
+           throw  new ResourceNotFoundException("삭제된 댓글입니다.");
+       }
        if(comment.getUser().getId()!=userId){
            throw new AuthorizationFailureException("작성자만 수정 가능합니다.");
        }
@@ -64,6 +68,7 @@ public class CommentService {
         if(comment.getUser().getId()!=userId){
             throw new AuthorizationFailureException("작성자만 삭제 가능합니다.");
         }
-        commentRepository.delete(comment);
+        comment.setDeleted(true);
+        commentRepository.save(comment);
     }
 }

@@ -15,13 +15,12 @@ import com.green.spring_board.repository.LikeRepository;
 import com.green.spring_board.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.domain.PageImpl;
+
 import org.springframework.data.domain.Sort;
 
 
@@ -30,7 +29,7 @@ import org.springframework.data.domain.Sort;
 @AllArgsConstructor
 @Service
 public class BoardService {
-    private final CommentService commentService;
+
     private BoardRepository boardRepository;
     private UserRepository userRepository;
     private LikeRepository likeRepository;
@@ -40,7 +39,7 @@ public class BoardService {
     public Page<BoardResponse> getAllBoards(int userId, int page, int size, String order)
     {
         Pageable pageable = PageRequest.of(page,size,createSort(order));
-        Page<BoardResponse> boardResponses = boardRepository.findAll(pageable)
+        Page<BoardResponse> boardResponses = boardRepository.findByIsDeletedFalse(pageable)
                 .map(board ->
                         BoardResponse.from(board,isLikedByMe(userId,board.getId())
                         )
@@ -54,7 +53,7 @@ public class BoardService {
     public Page<BoardResponse> getAllBoards(int page, int size, String order){
 
         Pageable pageable =PageRequest.of(page, size,createSort(order));
-        Page<BoardResponse> boardResponses = boardRepository.findAll(pageable)
+        Page<BoardResponse> boardResponses = boardRepository.findByIsDeletedFalse(pageable)
                 .map(board ->
                         BoardResponse.from(board,false)
                 );
@@ -78,13 +77,16 @@ public class BoardService {
             throw new ResourceNotFoundException("요청한 게시글을 찾지 못했습니다.");
         }
             Board board = optionalBoards.get();
+        if(board.isDeleted()){
+            throw new ResourceNotFoundException("삭제된 게시글입니다.");
+        }
 
             board.setHits(board.getHits() + 1);
             boardRepository.save(board);
 
             return BoardResponse.from(board,false);
     }
-    //상세 조회
+    //상세 조회(로그인)
     public BoardResponse getBoardDetail(int userId, int id) {
         Optional<Board> optionalBoards = boardRepository.findById(id);
         //잘못된 게시글 id
@@ -92,7 +94,9 @@ public class BoardService {
             throw new ResourceNotFoundException("요청한 게시글을 찾지 못했습니다.");
         }
         Board board = optionalBoards.get();
-
+        if(board.isDeleted()){
+            throw  new ResourceNotFoundException("삭제된 게시글입니다.");
+        }
         board.setHits(board.getHits() + 1);
         boardRepository.save(board);
 
@@ -101,7 +105,6 @@ public class BoardService {
 
     //생성
     public int createBoard(BoardCreateRequest boardCreateRequest, int id){
-        System.out.println(boardCreateRequest.getTitle() +":"+ boardCreateRequest.getContent());
 
         Board board = new Board();
         board.setTitle(boardCreateRequest.getTitle());
@@ -123,6 +126,9 @@ public class BoardService {
             throw new ResourceNotFoundException("요청한 게시글을 찾지 못했습니다.");
         }
         Board board = optionalBoards.get();
+        if(board.isDeleted()){
+            throw new ResourceNotFoundException("삭제된 게시글입니다.");
+        }
         //요청자의 userId, 작성자의 userId비교
         if( board.getUser().getId() != userId){
             throw new AuthorizationFailureException("작성자만 수정이 가능합니다.");
@@ -156,7 +162,8 @@ public class BoardService {
 
             throw new AuthorizationFailureException("게시글 작성자만 삭제 가능합니다.");
         }
-        boardRepository.deleteById(id);
+        board.setDeleted(true);
+        boardRepository.save(board);
     }
 
     public void pressLike(int id, int userId){
