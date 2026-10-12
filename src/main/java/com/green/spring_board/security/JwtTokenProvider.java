@@ -17,7 +17,7 @@ public class JwtTokenProvider {
     //엑세스 토큰 유효 기간 (단위: 밀리초) : 1시간
     private static final long ACCESS_TOKEN_VALIDITY = 1000*60*60;
     //리프레시 토큰 유효 기간 : 7일
-    private static final long REFERESH_TOKEN_VALIDITY = 1000*60*60*24*7;
+    private static final long REFRESH_TOKEN_VALIDITY = 1000*60*60*24*7;
     public JwtTokenProvider(
             @Value("${spring.jwt.secret}") String secretKey
     ) {
@@ -40,7 +40,7 @@ public class JwtTokenProvider {
     //리프레시 토큰 생성
     public String generateRefreshToken(String username){
         Date now = new Date();
-        Date expiry = new Date(now.getTime()+REFERESH_TOKEN_VALIDITY);
+        Date expiry = new Date(now.getTime()+ REFRESH_TOKEN_VALIDITY);
 
         return Jwts.builder()
                 .setSubject(username)
@@ -58,7 +58,7 @@ public class JwtTokenProvider {
             String tokenType = Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
-                    .parseClaimsJwt(token)
+                    .parseClaimsJws(token)
                     .getBody()
                     .get("tokenType", String.class);
 
@@ -75,7 +75,7 @@ public class JwtTokenProvider {
             String tokenType = Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
-                    .parseClaimsJwt(token)
+                    .parseClaimsJws(token)
                     .getBody()
                     .get("tokenType", String.class);
 
@@ -90,7 +90,7 @@ public class JwtTokenProvider {
         return Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
-                    .parseClaimsJwt(token)
+                    .parseClaimsJws(token)
                     .getBody()
                     .getSubject();
     }
@@ -100,7 +100,7 @@ public class JwtTokenProvider {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
-                .parseClaimsJwt(token)
+                .parseClaimsJws(token)
                 .getBody()
                 .getExpiration();
     }

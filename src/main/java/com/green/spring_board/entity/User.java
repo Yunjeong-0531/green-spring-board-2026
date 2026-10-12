@@ -41,6 +41,6 @@ public class User {
     private UserState state;
 
     @Column(nullable = false, unique = true)
-    private String Username;
+    private String username;
 
 }

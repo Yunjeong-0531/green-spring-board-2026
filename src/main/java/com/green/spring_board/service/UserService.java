@@ -1,9 +1,6 @@
 package com.green.spring_board.service;
 
-import com.green.spring_board.dto.BoardResponse;
-import com.green.spring_board.dto.LoginRequest;
-import com.green.spring_board.dto.UserUpdateRequest;
-import com.green.spring_board.dto.SignUpRequest;
+import com.green.spring_board.dto.*;
 import com.green.spring_board.entity.Board;
 import com.green.spring_board.entity.User;
 import com.green.spring_board.exceptions.AuthorizationFailureException;
@@ -15,7 +12,11 @@ import com.green.spring_board.repository.LikeRepository;
 import com.green.spring_board.repository.UserRepository;
 
 import com.green.spring_board.repository.BoardRepository;
+import com.green.spring_board.security.JwtTokenProvider;
 import lombok.AllArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,17 +30,22 @@ public class UserService {
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
     private final LikeRepository likeRepository;
-    private final PasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
+    //빈으로 등록한 passwordEncoder사용
+    private final PasswordEncoder passwordEncoder; //=new BCryptPasswordEncoder();
+    private final AuthenticationManager authenticationManager;
+    private final JwtTokenProvider tokenProvider;
+
 
     public void signUp(SignUpRequest signUpRequest){
-        //이메일이 사용중인지 확인
-        if(userRepository.existsByEmail(signUpRequest.getEmail())){
-            throw new ResourceConflictException("존재하는 이메일입니다.");
+        //아이디가 사용중인지 확인
+        if(userRepository.existsByUsername(signUpRequest.getUsername())){
+            throw new ResourceConflictException("존재하는 사용자 ID입니다.");
         }
         //비밀번호 해싱
         String hashedPassword = passwordEncoder.encode(signUpRequest.getPassword());
         //db save
         User user = new User();
+        user.setUsername(signUpRequest.getUsername());
         user.setNickname(signUpRequest.getNickname());
         user.setEmail(signUpRequest.getEmail());
         user.setPassword(hashedPassword);
@@ -47,24 +53,29 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public int login(LoginRequest loginRequest){
-        //사용자가 넘겨준 이메일 존재하는지 확인
-        Optional<User> userOptional = userRepository.findByEmail(loginRequest.getEmail());
+    public LoginResponse login(LoginRequest loginRequest){
+        try{
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                    loginRequest.getUsername(), loginRequest.getPassword()
+            ));
+        } catch (AuthenticationException e){
+            throw new UnauthenticatedException("아이디 또는 비밀번호가 올바르지 않습니다.");
+        }
 
-        if (userOptional.isEmpty()){
+        //사용자가 넘겨준 이메일 존재하는지 확인
+        //optional이 아닌 user로 결과를 받는다.
+        //아래 줄은 없어도 정상 작동한다.
+        User user = userRepository.findByUsername(loginRequest.getUsername());
+        if (user==null){
             throw new ResourceNotFoundException("존재하지 않는 이메일입니다.");
         }
-        User user = userOptional.get();
-
-        if(user.getState()==UserState.quitted){
+        if(user.getState()==UserState.quitted) {
             throw new ResourceNotFoundException("탈퇴된 회원입니다.");
         }
-        //존재한다면 비밀번호 동일한지 확인
-        if(!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())){
-            throw new UnauthenticatedException("잘못된 비밀번호입니다.");
-        }
+        //엑세스 토큰 발급
+        String accessToken = tokenProvider.generateAccessToken(user.getUsername());
         //로그인 성공
-        return user.getId();
+        return new LoginResponse(accessToken);
 
     }
 
