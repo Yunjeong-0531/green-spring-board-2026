@@ -5,6 +5,7 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 application.properties
+.env.localhost
 
 ### STS ###
 .apt_generated

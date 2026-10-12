@@ -40,4 +40,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserState state;
 
+    @Column(nullable = false, unique = true)
+    private String Username;
+
 }
