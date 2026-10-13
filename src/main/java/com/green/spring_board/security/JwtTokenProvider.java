@@ -15,7 +15,7 @@ import java.util.UUID;
 public class JwtTokenProvider {
     private final Key key;
     //엑세스 토큰 유효 기간 (단위: 밀리초) : 1시간
-    private static final long ACCESS_TOKEN_VALIDITY = 1000*60*60;
+    private static final long ACCESS_TOKEN_VALIDITY =1000*60*60;
     //리프레시 토큰 유효 기간 : 7일
     private static final long REFRESH_TOKEN_VALIDITY = 1000*60*60*24*7;
     public JwtTokenProvider(
