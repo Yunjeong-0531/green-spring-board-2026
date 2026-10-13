@@ -76,6 +76,14 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.ok());
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<RefreshResponse>> refresh(
+            @Valid @RequestBody RefreshRequest refreshRequest
+    ){
+        RefreshResponse refreshResponse = userService.Refresh(refreshRequest);
+        return ResponseEntity.ok(ApiResponse.ok(refreshResponse));
+    }
+
     @PatchMapping
     public ResponseEntity<ApiResponse<Void>> updateInfo(
     @Valid @RequestBody UserUpdateRequest userUpdateRequest){
