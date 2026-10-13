@@ -14,6 +14,7 @@ import com.green.spring_board.repository.BoardRepository;
 import com.green.spring_board.repository.LikeRepository;
 import com.green.spring_board.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,9 +36,10 @@ public class BoardService {
     private LikeRepository likeRepository;
 
 
-    //전체 조회 (로그인)
-    public Page<BoardResponse> getAllBoards(int userId, int page, int size, String order)
-    {
+    //전체 조회
+    public Page<BoardResponse> getAllBoards(int page, int size, String order)
+    {   int userId = getUserIdFromToken();
+
         Pageable pageable = PageRequest.of(page,size,createSort(order));
         Page<BoardResponse> boardResponses = boardRepository.findByIsDeletedFalse(pageable)
                 .map(board ->
@@ -49,16 +51,7 @@ public class BoardService {
 
 
     }
-    //전체 조회(비로그인)
-    public Page<BoardResponse> getAllBoards(int page, int size, String order){
 
-        Pageable pageable =PageRequest.of(page, size,createSort(order));
-        Page<BoardResponse> boardResponses = boardRepository.findByIsDeletedFalse(pageable)
-                .map(board ->
-                        BoardResponse.from(board,false)
-                );
-        return boardResponses;
-         }
 
     private Sort createSort(String order){
         return switch (order){
@@ -67,27 +60,11 @@ public class BoardService {
             case "views"  -> Sort.by(Sort.Direction.DESC, "hits");
             default -> throw new InvalidStateException("잘못된 정렬 옵션입니다.");
         };
-    }
+   }
 
-    //상세 조회(비로그인)
-    public BoardResponse getBoardDetail(int id) {
-        Optional<Board> optionalBoards = boardRepository.findById(id);
-        //잘못된 게시글 id
-        if(optionalBoards.isEmpty()){
-            throw new ResourceNotFoundException("요청한 게시글을 찾지 못했습니다.");
-        }
-            Board board = optionalBoards.get();
-        if(board.isDeleted()){
-            throw new ResourceNotFoundException("삭제된 게시글입니다.");
-        }
-
-            board.setHits(board.getHits() + 1);
-            boardRepository.save(board);
-
-            return BoardResponse.from(board,false);
-    }
     //상세 조회(로그인)
-    public BoardResponse getBoardDetail(int userId, int id) {
+    public BoardResponse getBoardDetail( int id) {
+        int userId = getUserIdFromToken();
         Optional<Board> optionalBoards = boardRepository.findById(id);
         //잘못된 게시글 id
         if(optionalBoards.isEmpty()){
@@ -104,12 +81,13 @@ public class BoardService {
     }
 
     //생성
-    public int createBoard(BoardCreateRequest boardCreateRequest, int id){
+    public int createBoard(BoardCreateRequest boardCreateRequest){
+        int userId = getUserIdFromToken();
 
         Board board = new Board();
         board.setTitle(boardCreateRequest.getTitle());
         board.setContent(boardCreateRequest.getContent());
-        Optional<User> userOptional = userRepository.findById(id);
+        Optional<User> userOptional = userRepository.findById(userId);
         if(userOptional.isEmpty()){
             throw new ResourceNotFoundException("존재하지 않는 사용자 Id입니다.");
         }
@@ -119,7 +97,10 @@ public class BoardService {
         return savedBoard.getId();
     }
     //수정
-    public void updateBoard(int id, BoardUpdateRequest boardUpdateRequest, int userId){
+    public void updateBoard(int id, BoardUpdateRequest boardUpdateRequest){
+
+        int userId = getUserIdFromToken();
+
         Optional<Board> optionalBoards = boardRepository.findById(id);
         //잘못된 게시글 id
         if(optionalBoards.isEmpty()){
@@ -145,12 +126,14 @@ public class BoardService {
         boardRepository.save(board);
     }
     //삭제
-    public void deleteBoard(int id, int userId){
+    public void deleteBoard(int id){
 //        boolean isBoardExists = boardRepository.existsById(id);
 //        if(!isBoardExists){
 //            throw new ResourceNotFoundException("요청한 게시글을 찾지 못했습니다.");
 //        }
-//
+
+        int userId = getUserIdFromToken();
+
         Optional<Board> optionalBoard = boardRepository.findById(id);
         if(optionalBoard.isEmpty()){
             throw new ResourceNotFoundException("요청한 게시글을 찾지 못했습니다.");
@@ -166,7 +149,9 @@ public class BoardService {
         boardRepository.save(board);
     }
 
-    public void pressLike(int id, int userId){
+    public void pressLike(int id){
+
+        int userId = getUserIdFromToken();
         //게시글 존재 여부 확인
         Optional<Board> optionalBoard = boardRepository.findById(id);
         Optional<User> optionalUser = userRepository.findById(userId);
@@ -213,6 +198,11 @@ public class BoardService {
     public boolean isLikedByMe(int userId, int boardId){
         return likeRepository.existsByUserIdAndBoardId(userId, boardId);
 
+    }
+
+    public int getUserIdFromToken(){
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUsername(username).getId();
     }
 
 }

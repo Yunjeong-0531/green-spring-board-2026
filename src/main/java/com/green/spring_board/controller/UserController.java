@@ -44,33 +44,26 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserUpdateRequest>> getCurrentUser(
-            HttpServletRequest httpServletRequest){
+    public ResponseEntity<ApiResponse<UserUpdateRequest>> getCurrentUser(){
 
-            //내 정보 조회하기(이메일과 닉네임)
-            //1.세션 가져오기
-            HttpSession session = httpServletRequest.getSession(false);
-            if (session == null || session.getAttribute("userId") == null) {
-                throw new UnauthenticatedException("로그인이 필요합니다.");
-            }
-            //2. 세션에서 유저 아이디 가져오기
-            int userId = (int) session.getAttribute("userId");
+//            //내 정보 조회하기(이메일과 닉네임)
+//            //1.세션 가져오기
+//            HttpSession session = httpServletRequest.getSession(false);
+//            if (session == null || session.getAttribute("userId") == null) {
+//                throw new UnauthenticatedException("로그인이 필요합니다.");
+//            }
+//            //2. 세션에서 유저 아이디 가져오기
+//            int userId = (int) session.getAttribute("userId");
 
             //3.id로 db조회, 이메일과 닉네임 받아오기, 반환
-            UserUpdateRequest userUpdateRequest = userService.getUserInfo(userId);
+            UserUpdateRequest userUpdateRequest = userService.getUserInfo();
             return ResponseEntity.ok(ApiResponse.ok(userUpdateRequest));
 
     }
 
     @GetMapping("/me/board")
-    public ResponseEntity<ApiResponse<List<BoardResponse>>> getMyBoard(HttpServletRequest request){
-        HttpSession session = request.getSession(false);
-        if(session==null||session.getAttribute("userId")==null){
-            throw new UnauthenticatedException("로그인이 필요합니다.");
-        }
-        int id = (int) session.getAttribute("userId");
-
-        List<BoardResponse> boardResponses = userService.getMyBoard(id);
+    public ResponseEntity<ApiResponse<List<BoardResponse>>> getMyBoard(){
+             List<BoardResponse> boardResponses = userService.getMyBoard();
         return ResponseEntity.ok(ApiResponse.ok(boardResponses));
 
 
@@ -78,45 +71,26 @@ public class UserController {
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout (
-            HttpServletRequest request
     ){
-        HttpSession session = request.getSession(false);
-
-        if(session==null || session.getAttribute("userId")==null){
-           throw new UnauthenticatedException("로그인이 필요합니다.");
-        }
-        session.invalidate();
+       //로그아웃기능없음??
         return ResponseEntity.ok(ApiResponse.ok());
     }
 
     @PatchMapping
     public ResponseEntity<ApiResponse<Void>> updateInfo(
-            HttpServletRequest request,
     @Valid @RequestBody UserUpdateRequest userUpdateRequest){
         //현재 유저 가져와서 해당 유저 정보로 덮어씌우기
         //null이면 수정하지 않기
 
-            HttpSession session = request.getSession(false);
-            if (session == null || session.getAttribute("userId") == null) {
-               throw new UnauthenticatedException("로그인이 필요합니다.") ;
-            }
-            int id = (int) session.getAttribute("userId");
-            userService.updateInfo(id, userUpdateRequest);
+            userService.updateInfo(userUpdateRequest);
             return ResponseEntity.ok(ApiResponse.ok());
 
     }
 
     @DeleteMapping
     public ResponseEntity<ApiResponse<Void>> deleteUser(
-            HttpServletRequest request
     ){
-        HttpSession session = request.getSession(false);
-        if(session ==null||session.getAttribute("userId")==null){
-            throw new UnauthenticatedException("로그인이 필요합니다");
-        }
-        int id = (int)session.getAttribute("userId");
-        userService.deleteUser(id);
-        session.invalidate();
+        userService.deleteUser();
         return ResponseEntity.ok().body(ApiResponse.ok());
 //        return ResponseEntity.noContent().build();
     }
