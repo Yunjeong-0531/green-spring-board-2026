@@ -1,5 +1,8 @@
 package com.green.spring_board.service;
 
+
+import org.springframework.transaction.annotation.Transactional;
+
 import com.green.spring_board.dto.BoardResponse;
 import com.green.spring_board.dto.BoardUpdateRequest;
 import com.green.spring_board.dto.LikeDetailResponse;
@@ -21,7 +24,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.data.domain.Sort;
 
 
@@ -37,6 +39,7 @@ public class BoardService {
 
 
     //전체 조회
+    @Transactional(readOnly = true)
     public Page<BoardResponse> getAllBoards(int page, int size, String order)
     {   int userId = getUserIdFromToken();
 
@@ -63,6 +66,7 @@ public class BoardService {
    }
 
     //상세 조회(로그인)
+    @Transactional(readOnly=true)
     public BoardResponse getBoardDetail( int id) {
         int userId = getUserIdFromToken();
         Optional<Board> optionalBoards = boardRepository.findById(id);
@@ -81,6 +85,7 @@ public class BoardService {
     }
 
     //생성
+    @Transactional
     public int createBoard(BoardCreateRequest boardCreateRequest){
         int userId = getUserIdFromToken();
 
@@ -96,7 +101,9 @@ public class BoardService {
         Board savedBoard = boardRepository.save(board);
         return savedBoard.getId();
     }
+
     //수정
+    @Transactional
     public void updateBoard(int id, BoardUpdateRequest boardUpdateRequest){
 
         int userId = getUserIdFromToken();
@@ -125,7 +132,9 @@ public class BoardService {
 
         boardRepository.save(board);
     }
+
     //삭제
+    @Transactional
     public void deleteBoard(int id){
 //        boolean isBoardExists = boardRepository.existsById(id);
 //        if(!isBoardExists){
@@ -149,6 +158,7 @@ public class BoardService {
         boardRepository.save(board);
     }
 
+    @Transactional
     public void pressLike(int id){
 
         int userId = getUserIdFromToken();
@@ -183,7 +193,7 @@ public class BoardService {
 
     }
 
-
+    @Transactional
     public LikeDetailResponse viewLikeDetails(int id) {
         List<Like> likes = likeRepository.findByBoardId(id);
 

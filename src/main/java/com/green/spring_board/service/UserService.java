@@ -10,9 +10,8 @@ import com.green.spring_board.exceptions.ResourceNotFoundException;
 import com.green.spring_board.exceptions.UnauthenticatedException;
 import com.green.spring_board.global.UserState;
 import com.green.spring_board.repository.*;
-
+import org.springframework.transaction.annotation.Transactional;
 import com.green.spring_board.security.JwtTokenProvider;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -42,7 +41,7 @@ public class UserService {
     private final JwtTokenProvider tokenProvider;
 
 
-
+    @Transactional
     public void signUp(SignUpRequest signUpRequest){
         //아이디가 사용중인지 확인
         if(userRepository.existsByUsername(signUpRequest.getUsername())){
@@ -111,6 +110,7 @@ public class UserService {
 
     }
 
+    @Transactional(readOnly = true)
     public UserUpdateRequest getUserInfo(){
         User user = getUserFromToken();
 
@@ -118,6 +118,7 @@ public class UserService {
                 user.getEmail(), user.getNickname());
     }
 
+    @Transactional
     public void updateInfo(
                            UserUpdateRequest userUpdateRequest){
         User user = getUserFromToken();
@@ -133,6 +134,7 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Transactional(readOnly = true)
     public RefreshResponse Refresh(RefreshRequest refreshRequest){
         String userRefreshToken = refreshRequest.getRefreshToken();
         //리프레시 토큰 위변조 여부 검증
@@ -175,13 +177,14 @@ public class UserService {
 
     }
 
+    @Transactional
     public void deleteUser(){
         User user = getUserFromToken();
         user.setState(UserState.quitted);
         userRepository.save(user);
 
     }
-
+    @Transactional(readOnly=true)
     public List<BoardResponse> getMyBoard(){
         User user = getUserFromToken();
 

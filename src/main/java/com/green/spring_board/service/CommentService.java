@@ -12,6 +12,7 @@ import com.green.spring_board.repository.CommentRepository;
 import com.green.spring_board.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.print.Pageable;
 import java.util.List;
@@ -23,6 +24,7 @@ public class CommentService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
 
+    @Transactional
     public void postComment(int boardId, int userId, CommentCreateRequest commentCreateRequest){
         Comment comment = new Comment();
         Board board =boardRepository.findById(boardId)
@@ -35,6 +37,7 @@ public class CommentService {
         commentRepository.save(comment);
     }
 
+    @Transactional(readOnly = true)
     public List<CommentResponse> readComments(int boardId){
         if(!boardRepository.existsById(boardId)){
             throw new ResourceNotFoundException("존재하지 않는 게시글입니다.");
@@ -47,6 +50,7 @@ public class CommentService {
 
     }
 
+    @Transactional
     public void updateComment(int id, int userId, CommentCreateRequest commentUpdateRequest) {
        Comment comment = commentRepository.findById(id)
                .orElseThrow(()-> new ResourceNotFoundException("존재하지 않는 댓글입니다."));
@@ -62,6 +66,7 @@ public class CommentService {
        commentRepository.save(comment);
     }
 
+    @Transactional
     public void deleteComment(int id, int userId){
         Comment comment= commentRepository.findById(id)
                 .orElseThrow(()->new ResourceNotFoundException("존재하지 않는 댓글입니다."));
