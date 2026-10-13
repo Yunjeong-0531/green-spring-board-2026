@@ -3,6 +3,8 @@ package com.green.spring_board.repository;
 import com.green.spring_board.entity.Board;
 import com.green.spring_board.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,5 +18,11 @@ public interface BoardRepository extends JpaRepository <Board, Integer> {
     List<Board> findByUserIdAndIsDeletedFalse(int userId);
 
     Page<Board> findByIsDeletedFalse(Pageable pageable);
+
+    @Query(value = "select * from boards where is_deleted=false and " +
+            "match(title) against(:keyword in natural language mode)", nativeQuery = true)
+    List<Board> searchByTitle(@Param("keyword") String keyword);
+
+
 
 }

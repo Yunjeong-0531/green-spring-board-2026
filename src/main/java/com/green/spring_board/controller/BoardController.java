@@ -104,6 +104,14 @@ public class BoardController {
         return ResponseEntity.ok().body(ApiResponse.ok(likeDetailResponse));
     }
 
+    //검색
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<BoardResponse>>> searchPosts(
+            @RequestParam String keyword
+    ){  List<BoardResponse> response = boardService.search(keyword);
+        return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
 
 
 

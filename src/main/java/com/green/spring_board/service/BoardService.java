@@ -205,6 +205,22 @@ public class BoardService {
 
     }
 
+    @Transactional
+    public List<BoardResponse> search(String keyword){
+        List<Board> boards = boardRepository.searchByTitle(keyword);
+
+//        return  boards.stream()
+//                .map(board->BoardResponse.from(board, isLikedByMe(getUserIdFromToken(), board.getId())))
+//                .toList();
+        List<Integer> likeBoardIds = likeRepository.findLikedBoardIdsByUserId(getUserIdFromToken());
+       return     boards.stream()
+                .map(board ->BoardResponse.from(board,likeBoardIds.contains(board.getId())))
+                .toList();
+
+    }
+
+
+
     public boolean isLikedByMe(int userId, int boardId){
         return likeRepository.existsByUserIdAndBoardId(userId, boardId);
 
