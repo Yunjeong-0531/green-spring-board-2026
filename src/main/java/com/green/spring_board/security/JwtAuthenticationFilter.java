@@ -1,10 +1,13 @@
 package com.green.spring_board.security;
+import com.green.spring_board.entity.AccessTokenBlacklist;
 import com.green.spring_board.exceptions.UnauthenticatedException;
+import com.green.spring_board.repository.AccessTokenBlacklistRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Component
 @AllArgsConstructor
@@ -23,6 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+    private final AccessTokenBlacklistRepository accessTokenBlacklistRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -31,6 +36,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
             String token = header.substring(7);//bearer와 공백 제외
             //토큰 위변조 여부 검사
           if(jwtTokenProvider.validateAccessToken(token) ){
+              Optional<AccessTokenBlacklist> optionalAccessTokenBlacklist = accessTokenBlacklistRepository.findByToken(token);
+              if(optionalAccessTokenBlacklist.isPresent()){
+                  authenticationEntryPoint.commence(
+                          request,
+                          response,
+                          new BadCredentialsException("무효화된 엑세스 토큰입니다."));
+                  return;
+              }
+
+
               String username = jwtTokenProvider.getUsernameFromToken(token);
               UserDetails userDetails;
 

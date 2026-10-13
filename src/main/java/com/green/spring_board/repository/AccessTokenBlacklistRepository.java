@@ -1,0 +1,13 @@
+package com.green.spring_board.repository;
+
+import com.green.spring_board.entity.AccessTokenBlacklist;
+import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+
+@Repository
+public interface AccessTokenBlacklistRepository extends JpaRepository<AccessTokenBlacklist,Integer> {
+    Optional<AccessTokenBlacklist> findByToken(String token);
+}

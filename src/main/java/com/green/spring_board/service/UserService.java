@@ -1,6 +1,7 @@
 package com.green.spring_board.service;
 
 import com.green.spring_board.dto.*;
+import com.green.spring_board.entity.AccessTokenBlacklist;
 import com.green.spring_board.entity.Board;
 import com.green.spring_board.entity.RefreshToken;
 import com.green.spring_board.entity.User;
@@ -8,11 +9,8 @@ import com.green.spring_board.exceptions.ResourceConflictException;
 import com.green.spring_board.exceptions.ResourceNotFoundException;
 import com.green.spring_board.exceptions.UnauthenticatedException;
 import com.green.spring_board.global.UserState;
-import com.green.spring_board.repository.LikeRepository;
-import com.green.spring_board.repository.RefreshTokenRepository;
-import com.green.spring_board.repository.UserRepository;
+import com.green.spring_board.repository.*;
 
-import com.green.spring_board.repository.BoardRepository;
 import com.green.spring_board.security.JwtTokenProvider;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -37,6 +35,7 @@ public class UserService {
     private final BoardRepository boardRepository;
     private final LikeRepository likeRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final AccessTokenBlacklistRepository accessTokenBlacklistRepository;
     //빈으로 등록한 passwordEncoder사용
     private final PasswordEncoder passwordEncoder; //=new BCryptPasswordEncoder();
     private final AuthenticationManager authenticationManager;
@@ -91,6 +90,7 @@ public class UserService {
         //트랜잭셔널 없이는 기본키로 제거해야 한다.
         //List<RefreshToken> tokens = refreshTokenRepository.findByUserId(user.getId());
         //tokens.forEach(token-> refreshTokenRepository.deleteByUserId(token.getId()));
+        ////refreshTokenRepository.deleteAll(tokens);
 
         //신규 리프레시 토큰 저장
         RefreshToken refreshTokenEntity = new RefreshToken();
@@ -157,6 +157,22 @@ public class UserService {
 
         String accessToken = tokenProvider.generateAccessToken(username);
         return new RefreshResponse(accessToken);
+    }
+
+    @Transactional
+    public void logout(String accessToken){
+        //해당 사용자의 리프레시 토큰 무효화
+        User user = getUserFromToken();
+        refreshTokenRepository.deleteByUserId(user.getId());
+
+        AccessTokenBlacklist accessTokenBlacklist = new AccessTokenBlacklist();
+
+        Date expiration = tokenProvider.getExpiration(accessToken);
+        LocalDateTime convertedDateTime = expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        accessTokenBlacklist.setToken(accessToken);
+        accessTokenBlacklist.setExpirationDatetime(convertedDateTime);
+        accessTokenBlacklistRepository.save(accessTokenBlacklist);
+
     }
 
     public void deleteUser(){
