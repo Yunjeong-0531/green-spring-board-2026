@@ -86,7 +86,7 @@ public class UserService {
         //유저의 기존 리프레시 토큰 삭제
         refreshTokenRepository.deleteByUserId(user.getId());
 
-        //트랜잭셔널 없이는 기본키로 제거해야 한다.
+        //위의 삭제 메서드는 트랜잭셔널 어노테이션 없이는 기본키로 제거해야 한다.
         //List<RefreshToken> tokens = refreshTokenRepository.findByUserId(user.getId());
         //tokens.forEach(token-> refreshTokenRepository.deleteByUserId(token.getId()));
         ////refreshTokenRepository.deleteAll(tokens);
@@ -106,7 +106,7 @@ public class UserService {
         refreshTokenEntity.setUser(userRepository.findByUsername(loginRequest.getUsername()));
         refreshTokenRepository.save(refreshTokenEntity);
         //로그인 성공
-        return new LoginResponse(accessToken, refreshToken);
+        return new LoginResponse(accessToken, refreshToken, user.getId());
 
     }
 

@@ -1,6 +1,7 @@
 package com.green.spring_board.service;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.green.spring_board.dto.BoardResponse;
@@ -31,6 +32,7 @@ import org.springframework.data.domain.Sort;
 
 @AllArgsConstructor
 @Service
+@Slf4j
 public class BoardService {
 
     private BoardRepository boardRepository;
@@ -66,7 +68,7 @@ public class BoardService {
    }
 
     //상세 조회(로그인)
-    @Transactional(readOnly=true)
+    @Transactional
     public BoardResponse getBoardDetail( int id) {
         int userId = getUserIdFromToken();
         Optional<Board> optionalBoards = boardRepository.findById(id);
@@ -79,6 +81,7 @@ public class BoardService {
             throw  new ResourceNotFoundException("삭제된 게시글입니다.");
         }
         board.setHits(board.getHits() + 1);
+        log.info(""+board.getHits());
         boardRepository.save(board);
 
         return BoardResponse.from(board, isLikedByMe(userId,id));

@@ -11,6 +11,7 @@ import com.green.spring_board.repository.BoardRepository;
 import com.green.spring_board.repository.CommentRepository;
 import com.green.spring_board.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +26,9 @@ public class CommentService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public void postComment(int boardId, int userId, CommentCreateRequest commentCreateRequest){
+    public void postComment(int boardId, CommentCreateRequest commentCreateRequest){
+       int userId = getUserIdFromToken();
+
         Comment comment = new Comment();
         Board board =boardRepository.findById(boardId)
                         .orElseThrow(()-> new ResourceNotFoundException("존재하지 않는 게시글입니다."));
@@ -51,7 +54,10 @@ public class CommentService {
     }
 
     @Transactional
-    public void updateComment(int id, int userId, CommentCreateRequest commentUpdateRequest) {
+    public void updateComment(int id, CommentCreateRequest commentUpdateRequest) {
+        int userId = getUserIdFromToken();
+
+
        Comment comment = commentRepository.findById(id)
                .orElseThrow(()-> new ResourceNotFoundException("존재하지 않는 댓글입니다."));
 
@@ -67,7 +73,9 @@ public class CommentService {
     }
 
     @Transactional
-    public void deleteComment(int id, int userId){
+    public void deleteComment(int id){
+
+        int userId = getUserIdFromToken();
         Comment comment= commentRepository.findById(id)
                 .orElseThrow(()->new ResourceNotFoundException("존재하지 않는 댓글입니다."));
         if(comment.getUser().getId()!=userId){
@@ -75,5 +83,12 @@ public class CommentService {
         }
         comment.setDeleted(true);
         commentRepository.save(comment);
+    }
+
+
+
+    public int getUserIdFromToken(){
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUsername(username).getId();
     }
 }

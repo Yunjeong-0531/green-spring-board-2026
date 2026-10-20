@@ -26,15 +26,9 @@ public class CommentController {
     @PostMapping("/board/{id}/comment")
     public ResponseEntity<ApiResponse<Void>> postComment(
             @PathVariable int id,
-            HttpServletRequest request,
             @Valid @RequestBody CommentCreateRequest commentCreateRequest){
 
-        HttpSession session = request.getSession(false);
-        if(session==null || session.getAttribute("userId") ==null){
-            throw new UnauthenticatedException("로그인 후 이용가능합니다.");
-        }
-        int userId = (int) session.getAttribute("userId");
-       commentService.postComment(id, userId, commentCreateRequest);
+       commentService.postComment(id, commentCreateRequest);
        return ResponseEntity.ok().body(ApiResponse.ok());
 
     }
@@ -51,30 +45,20 @@ public class CommentController {
     @PatchMapping("/comment/{id}")
     public ResponseEntity<ApiResponse<Void>> updateComment(
             @PathVariable int id,
-            HttpServletRequest request,
+
             @Valid @RequestBody CommentCreateRequest commentUpdateRequest){
 
-       HttpSession session = request.getSession(false);
-       if(session ==null || session.getAttribute("userId")==null){
-           throw  new UnauthenticatedException("로그인 후 이용가능합니다.");
-       }
-       int userId = (int) session.getAttribute("userId");
-       commentService.updateComment(id, userId, commentUpdateRequest);
+
+       commentService.updateComment(id, commentUpdateRequest);
        return ResponseEntity.ok().body(ApiResponse.ok());
     }
 
     @DeleteMapping("/comment/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteComment(
-            @PathVariable int id,
-            HttpServletRequest request
+            @PathVariable int id
     ){
-        HttpSession session = request.getSession(false);
-        if(session ==null || session.getAttribute("userId")==null){
-            throw  new UnauthenticatedException("로그인 후 이용가능합니다.");
-        }
-        int userId = (int) session.getAttribute("userId");
 
-        commentService.deleteComment(id, userId);
+        commentService.deleteComment(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.ok());
     }
 }
